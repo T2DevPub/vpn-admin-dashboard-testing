@@ -62,15 +62,46 @@ async function checkServerStatus(ip, port, protocol) {
 setInterval(async () => {
     if (!db) return;
     try {
-        const servers = await db.all(`SELECT id, ipAddress, port, protocol FROM servers`);
+        const servers = await db.all(`SELECT id, ipAddress, port, protocol, status, lastDowntimeAlertSent FROM servers`);
         for (const server of servers) {
             const status = await checkServerStatus(server.ipAddress, server.port, server.protocol);
             await db.run(`UPDATE servers SET status = ? WHERE id = ?`, [status, server.id]);
+
+            // Logic for downtime alerts
+            if (status === 'Down') {
+                const now = Date.now();
+                // If it hasn't alerted in the last hour, send an alert
+                if (!server.lastDowntimeAlertSent || (now - server.lastDowntimeAlertSent) > 60 * 60 * 1000) {
+                    console.log(`[ALERT] Server ${server.id} (${server.ipAddress}) is DOWN. Need to trigger email alert.`);
+                    // TODO: integrate nodemailer once email provider is known
+                    await db.run(`UPDATE servers SET lastDowntimeAlertSent = ? WHERE id = ?`, [now, server.id]);
+                }
+            } else if (status === 'Online' && server.status === 'Down') {
+                // Reset alert timestamp when it comes back online
+                await db.run(`UPDATE servers SET lastDowntimeAlertSent = NULL WHERE id = ?`, [server.id]);
+            }
         }
     } catch (e) {
         console.error("Health check error:", e);
     }
 }, 60000);
+
+// Background task to snapshot analytics every hour
+setInterval(async () => {
+    if (!db) return;
+    try {
+        const row = await db.get(`SELECT SUM(activeUsers) as total FROM servers`);
+        const activeUsers = row ? (row.total || 0) : 0;
+
+        const bwRow = await db.get(`SELECT consumedGb FROM bandwidth_stats WHERE id = 'main'`);
+        const consumedGb = bwRow ? (bwRow.consumedGb || 0) : 0;
+
+        const timestamp = Date.now();
+        await db.run(`INSERT INTO historical_stats (timestamp, activeUsers, consumedGb) VALUES (?, ?, ?)`, [timestamp, activeUsers, consumedGb]);
+    } catch (e) {
+        console.error("Historical stats snapshot error:", e);
+    }
+}, 60 * 60 * 1000); // 1 hour
 
 // Background task to increment bandwidth based on active users
 setInterval(async () => {
@@ -397,6 +428,25 @@ app.get('/api/ads', async (req, res) => {
       metaInterstitialAdUnitId: config.metaInterstitialAdUnitId || "",
       metaRewardedAdUnitId: config.metaRewardedAdUnitId || ""
   });
+});
+
+// Client App API Config Endpoint
+app.get('/api/client/config', async (req, res) => {
+    if (!db) return res.status(500).json({error: "Database starting"});
+    try {
+        const config = await db.get(`SELECT forceUpdateVersion, forceUpdateUrl, motdMessage, motdEnabled FROM app_config WHERE id = 'ads'`);
+        const servers = await db.all(`SELECT id, name, countryCode, flagEmoji, city, ipAddress, port, protocol, pingMs, loadPercent, isPlusOnly, ovpnConfig, vpnUsername, vpnPassword, status, skipCertCheck, serverType FROM servers WHERE maintenanceMode = 0`);
+
+        res.json({
+            forceUpdateVersion: config?.forceUpdateVersion || "1.0.0",
+            forceUpdateUrl: config?.forceUpdateUrl || "",
+            motdMessage: config?.motdMessage || "",
+            motdEnabled: config?.motdEnabled === 1,
+            servers: servers
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // Dashboard (Stats only)
