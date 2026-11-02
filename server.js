@@ -178,11 +178,11 @@ async function upgradeSchema() {
           }
       }
 
-      const serversInfo = await db.all(`PRAGMA table_info(servers)`);
-      if (!serversInfo.some(c => c.name === 'lastDowntimeAlertSent')) {
+      const newServersInfo = await db.all(`PRAGMA table_info(servers)`);
+      if (!newServersInfo.some(c => c.name === 'lastDowntimeAlertSent')) {
           await db.exec(`ALTER TABLE servers ADD COLUMN lastDowntimeAlertSent INTEGER`);
       }
-      if (!serversInfo.some(c => c.name === 'maintenanceMode')) {
+      if (!newServersInfo.some(c => c.name === 'maintenanceMode')) {
           await db.exec(`ALTER TABLE servers ADD COLUMN maintenanceMode INTEGER DEFAULT 0`);
       }
 
