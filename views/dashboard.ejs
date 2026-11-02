@@ -209,34 +209,8 @@
                             <h3 class="text-lg font-bold text-gray-800">Recent Alerts</h3>
                             <a href="#" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center transition-colors">View All <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></a>
                         </div>
-                        <ul class="space-y-2">
-                            <li class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
-                                <div class="flex items-center">
-                                    <div class="bg-rose-50 p-2 rounded-lg mr-3">
-                                        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                    </div>
-                                    <span class="text-sm font-semibold text-gray-700">US-02 server is offline</span>
-                                </div>
-                                <span class="text-xs text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-md">5 minutes ago</span>
-                            </li>
-                            <li class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
-                                <div class="flex items-center">
-                                    <div class="bg-emerald-50 p-2 rounded-lg mr-3">
-                                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    </div>
-                                    <span class="text-sm font-semibold text-gray-700">SG-01 health check passed</span>
-                                </div>
-                                <span class="text-xs text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-md">18 minutes ago</span>
-                            </li>
-                            <li class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
-                                <div class="flex items-center">
-                                    <div class="bg-amber-50 p-2 rounded-lg mr-3">
-                                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                    </div>
-                                    <span class="text-sm font-semibold text-gray-700">High bandwidth usage on DE-01 (85%)</span>
-                                </div>
-                                <span class="text-xs text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-md">32 minutes ago</span>
-                            </li>
+                        <ul class="space-y-2" id="recentAlertsList">
+                            <li class="p-3 text-center text-sm text-gray-400">Loading alerts...</li>
                         </ul>
                     </div>
 
@@ -450,6 +424,47 @@
                                     <div class="bg-blue-600 h-full rounded-full shadow-sm" style="width: ${pct}%"></div>
                                 </div>
                                 <span class="font-bold text-gray-500 w-12 text-right text-[12px] group-hover:text-blue-600 transition-colors">${pct}%</span>
+                            </li>
+                        `;
+                    });
+                }
+
+                // Update Recent Alerts Activity Log
+                const alertsList = document.getElementById('recentAlertsList');
+                alertsList.innerHTML = '';
+                if (!data.recentLogs || data.recentLogs.length === 0) {
+                    alertsList.innerHTML = '<li class="p-3 text-center text-sm text-gray-400">No recent activity.</li>';
+                } else {
+                    data.recentLogs.forEach(log => {
+                        let iconSvg, bgClass, textClass;
+                        if (log.action === 'add') {
+                            bgClass = 'bg-emerald-50'; textClass = 'text-emerald-500';
+                            iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>';
+                        } else if (log.action === 'delete') {
+                            bgClass = 'bg-rose-50'; textClass = 'text-rose-500';
+                            iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>';
+                        } else {
+                            bgClass = 'bg-blue-50'; textClass = 'text-blue-500';
+                            iconSvg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>';
+                        }
+
+                        // Calculate time ago
+                        const secondsPast = Math.floor((Date.now() - log.timestamp) / 1000);
+                        let timeAgo = '';
+                        if (secondsPast < 60) timeAgo = 'Just now';
+                        else if (secondsPast < 3600) timeAgo = Math.floor(secondsPast / 60) + ' min ago';
+                        else if (secondsPast < 86400) timeAgo = Math.floor(secondsPast / 3600) + ' hours ago';
+                        else timeAgo = Math.floor(secondsPast / 86400) + ' days ago';
+
+                        alertsList.innerHTML += `
+                            <li class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="${bgClass} p-2 rounded-lg mr-3">
+                                        <svg class="w-5 h-5 ${textClass}" fill="none" stroke="currentColor" viewBox="0 0 24 24">${iconSvg}</svg>
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-700">${log.message}</span>
+                                </div>
+                                <span class="text-xs text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-md whitespace-nowrap ml-2">${timeAgo}</span>
                             </li>
                         `;
                     });

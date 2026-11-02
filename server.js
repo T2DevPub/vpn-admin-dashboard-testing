@@ -186,9 +186,29 @@ async function upgradeSchema() {
           await db.exec(`ALTER TABLE servers ADD COLUMN maintenanceMode INTEGER DEFAULT 0`);
       }
 
+      // Add admin activity logs table
+      await db.exec(`
+        CREATE TABLE IF NOT EXISTS admin_activity_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          action TEXT,
+          message TEXT,
+          timestamp INTEGER
+        );
+      `);
+
   } catch (e) {
       console.error("Schema upgrade error:", e);
   }
+}
+
+// Function to log admin activity
+async function logActivity(action, message) {
+    if (!db) return;
+    try {
+        await db.run(`INSERT INTO admin_activity_logs (action, message, timestamp) VALUES (?, ?, ?)`, [action, message, Date.now()]);
+    } catch (e) {
+        console.error("Failed to log activity:", e);
+    }
 }
 
 // --- Database Setup ---
@@ -512,13 +532,20 @@ app.get('/api/admin/dashboard-stats', requireAuth, async (req, res) => {
     let ulDisplay = uploadGb.toFixed(2) + " GB";
     if (uploadGb > 1024) ulDisplay = (uploadGb / 1024).toFixed(2) + " TB";
 
+    // Fetch recent logs
+    let recentLogs = [];
+    if (db) {
+        recentLogs = await db.all(`SELECT * FROM admin_activity_logs ORDER BY timestamp DESC LIMIT 5`);
+    }
+
     res.json({
         totalActiveUsers,
         servers,
         bwDisplay,
         dlDisplay,
         ulDisplay,
-        countryStats
+        countryStats,
+        recentLogs
     });
 });
 
@@ -615,9 +642,11 @@ app.post('/save', requireAuth, upload.single('ovpnFile'), async (req, res) => {
   if (existing) {
     await db.run(`UPDATE servers SET name=?, countryCode=?, flagEmoji=?, city=?, ipAddress=?, port=?, protocol=?, loadPercent=?, isPlusOnly=?, skipCertCheck=?, serverType=?, ovpnConfig=?, vpnUsername=?, vpnPassword=? WHERE id=?`,
       [serverData.name, serverData.countryCode, serverData.flagEmoji, serverData.city, serverData.ipAddress, serverData.port, serverData.protocol, serverData.loadPercent, serverData.isPlusOnly, serverData.skipCertCheck, serverData.serverType, serverData.ovpnConfig, serverData.vpnUsername, serverData.vpnPassword, id]);
+    logActivity('edit', `Server updated: ${serverData.name || id}`);
   } else {
     await db.run(`INSERT INTO servers (id, name, countryCode, flagEmoji, city, ipAddress, port, protocol, loadPercent, isPlusOnly, skipCertCheck, serverType, ovpnConfig, vpnUsername, vpnPassword) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [id, serverData.name, serverData.countryCode, serverData.flagEmoji, serverData.city, serverData.ipAddress, serverData.port, serverData.protocol, serverData.loadPercent, serverData.isPlusOnly, serverData.skipCertCheck, serverData.serverType, serverData.ovpnConfig, serverData.vpnUsername, serverData.vpnPassword]);
+    logActivity('add', `New server added: ${serverData.name || id}`);
   }
 
   res.redirect('/servers');
@@ -626,7 +655,9 @@ app.post('/save', requireAuth, upload.single('ovpnFile'), async (req, res) => {
 // Delete Server
 app.get('/delete/:id', requireAuth, async (req, res) => {
   if (db) {
+    const server = await db.get(`SELECT name FROM servers WHERE id = ?`, req.params.id);
     await db.run(`DELETE FROM servers WHERE id = ?`, req.params.id);
+    if (server) logActivity('delete', `Server removed: ${server.name || req.params.id}`);
   }
   res.redirect('/servers');
 });
