@@ -5,19 +5,12 @@
     <link rel="icon" type="image/png" href="/images/t2vpn_icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-[#424A5C] text-white p-4 flex justify-between items-center shadow">
-        <div class="flex items-center space-x-3">
-            <img src="/images/t2VPN.png" alt="t2VPN Logo" class="h-8 bg-white p-1 rounded">
-            <span class="font-bold text-xl">Admin Dashboard</span>
-        </div>
-        <div>
-            <a href="/dashboard" class="mr-4 hover:text-gray-300">Dashboard</a>
-            <a href="/servers" class="mr-4 font-bold border-b-2">Servers</a>
-            <a href="/ads" class="mr-4 hover:text-gray-300">Ads</a>
-            <a href="/logout" class="bg-[#2D3340] hover:bg-[#1A1F29] px-3 py-1 rounded transition">Logout</a>
-        </div>
-    </nav>
+<body class="bg-[#f3f4f6] text-gray-800 font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+    <%- include('partials/sidebar', {activePage: 'servers'}) %>
+        <div class="flex-1 flex flex-col ml-64 overflow-hidden">
+            <%- include('partials/topbar', {pageTitle: 'Admin Panel', pageSubtitle: 'Manage your settings'}) %>
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-[#f8fafc] p-6 lg:p-8">
 
     <div class="p-8 max-w-7xl mx-auto">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -138,5 +131,8 @@
             }
         }
     </script>
+            </main>
+        </div>
+    </div>
 </body>
 </html>

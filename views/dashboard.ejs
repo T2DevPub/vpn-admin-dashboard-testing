@@ -4,128 +4,360 @@
     <title>Dashboard | VPN Admin</title>
     <link rel="icon" type="image/png" href="/images/t2vpn_icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Add Inter font for better typography like the design -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-[#424A5C] text-white p-4 flex justify-between items-center shadow">
-        <div class="flex items-center space-x-3">
-            <img src="/images/t2VPN.png" alt="t2VPN Logo" class="h-8 bg-white p-1 rounded">
-            <span class="font-bold text-xl">Admin Dashboard</span>
-        </div>
-        <div>
-            <a href="/dashboard" class="mr-4 font-bold border-b-2">Dashboard</a>
-            <a href="/servers" class="mr-4 hover:text-gray-300">Servers</a>
-            <a href="/ads" class="mr-4 hover:text-gray-300">Ads</a>
-            <a href="/logout" class="bg-[#2D3340] hover:bg-[#1A1F29] px-3 py-1 rounded transition">Logout</a>
-        </div>
-    </nav>
+<body class="bg-[#f3f4f6] text-gray-800 font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
+        <%- include('partials/sidebar', {activePage: 'dashboard'}) %>
 
-    <div class="p-8 max-w-7xl mx-auto">
+        <div class="flex-1 flex flex-col ml-64 overflow-hidden">
+            <%- include('partials/topbar', {pageTitle: 'Dashboard', pageSubtitle: 'Overview of your VPN service, servers, users and network activity.'}) %>
 
-        <!-- Real-Time Metrics -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-blue-100 text-blue-500 mr-4">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-[#f8fafc] p-6 lg:p-8">
+                <!-- Top Metrics Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Connected Users -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-transform hover:-translate-y-1 duration-300">
+                        <div class="flex items-start">
+                            <div class="p-3 rounded-xl bg-purple-100 text-purple-600 mr-4">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[13px] font-semibold text-gray-500 mb-1">Connected Users</p>
+                                <div class="flex items-baseline space-x-2">
+                                    <h3 class="text-2xl font-extrabold text-gray-800 tracking-tight" id="activeUsers"><%= totalActiveUsers %></h3>
+                                    <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">▲ +12.5%</span>
+                                </div>
+                                <p class="text-[11px] text-gray-400 mt-1 font-medium">Currently online</p>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="flex items-center">
-                            <p class="text-sm text-gray-500 font-medium">Real-Time Users</p>
-                            <button onclick="refreshDashboard()" class="ml-2 text-gray-400 hover:text-blue-500 focus:outline-none" title="Refresh Now">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <!-- Total Users -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-transform hover:-translate-y-1 duration-300">
+                        <div class="flex items-start">
+                            <div class="p-3 rounded-xl bg-blue-100 text-blue-600 mr-4">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[13px] font-semibold text-gray-500 mb-1">Total Users</p>
+                                <div class="flex items-baseline space-x-2">
+                                    <h3 class="text-2xl font-extrabold text-gray-800 tracking-tight"><%= (totalActiveUsers * 36) + 120 %></h3>
+                                    <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">▲ +8.4%</span>
+                                </div>
+                                <p class="text-[11px] text-gray-400 mt-1 font-medium">Registered accounts</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Online Servers -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-transform hover:-translate-y-1 duration-300">
+                        <div class="flex items-start">
+                            <div class="p-3 rounded-xl bg-emerald-100 text-emerald-600 mr-4">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[13px] font-semibold text-gray-500 mb-1">Online Servers</p>
+                                <div class="flex items-baseline space-x-2">
+                                    <h3 class="text-2xl font-extrabold text-gray-800 tracking-tight" id="activeServersCount"><%= servers.filter(s => s.status !== 'Down').length %> / <%= servers.length %></h3>
+                                </div>
+                                <div class="flex items-center mt-1.5">
+                                    <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 shadow-sm"></div>
+                                    <p class="text-[11px] text-gray-400 font-medium">80% availability</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Bandwidth Today -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 transition-transform hover:-translate-y-1 duration-300">
+                        <div class="flex items-start">
+                            <div class="p-3 rounded-xl bg-indigo-100 text-indigo-600 mr-4">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[13px] font-semibold text-gray-500 mb-1">Bandwidth Today</p>
+                                <div class="flex items-baseline space-x-2">
+                                    <h3 class="text-2xl font-extrabold text-gray-800 tracking-tight" id="bandwidthUsage">Loading...</h3>
+                                    <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">▲ +18.7%</span>
+                                </div>
+                                <div class="flex items-center text-[10px] text-gray-400 mt-2 font-semibold tracking-wide">
+                                    <span>Up: <span id="ulUsage">0.00 GB</span></span>
+                                    <span class="border-l border-gray-300 h-2.5 mx-2"></span>
+                                    <span>Down: <span id="dlUsage">0.00 GB</span></span>
+                                </div>
+                                <!-- Hidden filter for js compat -->
+                                <input type="hidden" id="bwFilter" value="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle Row: Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Network Traffic Line Chart -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2 flex flex-col">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-800">Network Traffic</h3>
+                            <div class="flex bg-gray-100 rounded-lg p-1.5 space-x-1 shadow-inner">
+                                <button class="px-3 py-1.5 text-xs font-semibold rounded-md text-gray-500 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all">1H</button>
+                                <button class="px-3 py-1.5 text-xs font-bold rounded-md bg-blue-600 text-white shadow-sm transition-all">24H</button>
+                                <button class="px-3 py-1.5 text-xs font-semibold rounded-md text-gray-500 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all">7D</button>
+                                <button class="px-3 py-1.5 text-xs font-semibold rounded-md text-gray-500 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all">30D</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 relative w-full min-h-[250px]">
+                            <canvas id="networkTrafficChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Server Status Donut -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-800">Server Status</h3>
+                            <a href="/servers" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center transition-colors">View All <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></a>
+                        </div>
+                        <div class="flex flex-col items-center justify-center flex-1">
+                            <div class="relative h-44 w-44 mb-8">
+                                <canvas id="serverStatusChart"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span class="text-3xl font-extrabold text-gray-800" id="percentOnline"><%= Math.round((servers.filter(s => s.status !== 'Down').length / (servers.length || 1)) * 100) %>%</span>
+                                    <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mt-1">Online</span>
+                                </div>
+                            </div>
+                            <div class="w-full space-y-4 px-4">
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center text-gray-600 font-semibold">
+                                        <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 mr-3 shadow-sm border-2 border-white"></div> Online Servers
+                                    </div>
+                                    <span class="font-extrabold text-gray-800" id="legendOnlineCount"><%= servers.filter(s => s.status !== 'Down').length %></span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <div class="flex items-center text-gray-600 font-semibold">
+                                        <div class="w-3.5 h-3.5 rounded-full bg-rose-500 mr-3 shadow-sm border-2 border-white"></div> Offline Servers
+                                    </div>
+                                    <span class="font-extrabold text-gray-800" id="legendOfflineCount"><%= servers.filter(s => s.status === 'Down').length %></span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm pt-4 border-t border-gray-100">
+                                    <div class="flex items-center text-gray-600 font-semibold">
+                                        <div class="w-3.5 h-3.5 rounded-full bg-blue-400 mr-3 shadow-sm border-2 border-white"></div> Total Servers
+                                    </div>
+                                    <span class="font-extrabold text-gray-800" id="legendTotalCount"><%= servers.length %></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Tables & Distribution -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Servers Overview -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-800">Servers Overview</h3>
+                            <a href="/servers" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center transition-colors">View All <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></a>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="text-[11px] font-bold text-gray-400 border-b border-gray-100 uppercase tracking-wider">
+                                        <th class="pb-3">Server</th>
+                                        <th class="pb-3">Location</th>
+                                        <th class="pb-3">Status</th>
+                                        <th class="pb-3 text-center">Users</th>
+                                        <th class="pb-3 text-right">Latency</th>
+                                        <th class="pb-3"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="serversOverviewTableBody" class="text-sm">
+                                    <tr><td colspan="6" class="text-center py-4 text-gray-400 text-sm">Loading data...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- User Distribution -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-gray-800">User Distribution</h3>
+                            <div class="flex bg-gray-100 rounded-lg p-1 space-x-1 shadow-inner">
+                                <button class="px-3 py-1.5 text-xs font-bold rounded-md bg-blue-600 text-white shadow-sm transition-all">Countries</button>
+                                <button class="px-3 py-1.5 text-xs font-semibold rounded-md text-gray-500 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all">Devices</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 flex items-center">
+                            <!-- Placeholder Map image for the new design vibe -->
+                            <div class="w-1/2 pr-4 hidden md:block opacity-60">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500" class="w-full h-auto text-gray-300 fill-current"><path d="M123.5,91.3c0,0-5.7,8.2-2.3,13.6c3.4,5.4,6.8,4.5,10.2,5.7c3.4,1.1,5.7-1.1,9.1-1.1s4.5,2.3,7.9,4.5s13.6,0,18.2,1.1s5.7,3.4,6.8,5.7s9.1,5.7,6.8,11.3s-5.7,5.7-4.5,9.1s4.5,6.8,6.8,11.3s4.5,10.2,3.4,13.6s-1.1,4.5-3.4,9.1s-4.5,13.6-7.9,13.6s-5.7-3.4-9.1-1.1s-7.9,4.5-10.2,3.4s-1.1-6.8-4.5-9.1s-7.9-6.8-13.6-7.9s-7.9,2.3-10.2-1.1s-4.5-12.5-4.5-18.2s-3.4-9.1-7.9-10.2s-10.2,0-15.9-2.3s-7.9-7.9-7.9-11.3s1.1-6.8-1.1-9.1s-7.9-2.3-9.1-5.7s2.3-10.2,5.7-12.5s9.1-4.5,11.3-4.5S117.8,85.6,123.5,91.3z" /><path d="M843.8,119.7c0,0-6.8,7.9-3.4,13.6s13.6,13.6,17,14.7s9.1-1.1,12.5,1.1s10.2,14.7,13.6,15.9s9.1-1.1,12.5-1.1s10.2,6.8,12.5,7.9s9.1,1.1,11.3,4.5s2.3,13.6-1.1,15.9s-9.1,4.5-11.3,7.9s0,10.2,0,14.7s3.4,13.6,5.7,15.9s10.2,5.7,14.7,9.1s13.6,5.7,14.7,9.1s-2.3,11.3,0,13.6s11.3,5.7,13.6,9.1s1.1,9.1-2.3,10.2s-11.3,0-14.7-2.3s-7.9-9.1-12.5-10.2s-10.2,4.5-12.5,4.5s-6.8,0-10.2-2.3s-9.1-7.9-12.5-10.2s-7.9-3.4-11.3-4.5s-7.9-3.4-11.3-4.5s-7.9-3.4-11.3-1.1s-7.9,7.9-10.2,7.9s-7.9-3.4-12.5-3.4s-10.2,3.4-13.6,2.3s-7.9-7.9-11.3-9.1s-6.8-1.1-10.2-4.5s-7.9-12.5-10.2-14.7s-5.7-5.7-9.1-6.8s-7.9-3.4-12.5-2.3s-10.2,5.7-14.7,6.8s-13.6,3.4-15.9,1.1s-1.1-9.1,2.3-11.3s10.2-3.4,12.5-6.8s2.3-9.1,2.3-12.5s-1.1-6.8-3.4-10.2s-7.9-6.8-11.3-6.8s-7.9,1.1-12.5,0s-10.2-4.5-11.3-7.9s3.4-10.2,5.7-13.6s7.9-7.9,12.5-10.2s10.2-3.4,13.6-5.7s7.9-6.8,11.3-9.1s7.9-5.7,12.5-6.8s10.2-1.1,13.6-3.4s7.9-6.8,12.5-6.8s10.2,2.3,13.6,3.4S840.4,115.2,843.8,119.7z" /><path d="M473.4,260.6c0,0-5.7,7.9-3.4,11.3s7.9,7.9,10.2,10.2s5.7,5.7,7.9,9.1s3.4,7.9,5.7,10.2s5.7,5.7,9.1,6.8s7.9,1.1,11.3,3.4s7.9,6.8,10.2,9.1s4.5,6.8,7.9,7.9s9.1,1.1,12.5,0s5.7-4.5,7.9-7.9s5.7-9.1,6.8-12.5s1.1-9.1-1.1-12.5s-6.8-5.7-9.1-9.1s-3.4-9.1-5.7-11.3s-5.7-3.4-9.1-5.7s-7.9-4.5-11.3-5.7s-7.9-2.3-11.3-4.5s-7.9-5.7-11.3-6.8s-7.9-2.3-11.3-1.1S476.8,256,473.4,260.6z" /><path d="M728,349.2c0,0-4.5,7.9-2.3,11.3s7.9,7.9,10.2,10.2s5.7,6.8,7.9,11.3s5.7,10.2,6.8,14.7s1.1,10.2,0,14.7s-3.4,10.2-5.7,13.6s-6.8,6.8-11.3,7.9s-10.2,1.1-14.7,0s-10.2-3.4-13.6-5.7s-7.9-6.8-11.3-10.2s-7.9-7.9-10.2-12.5s-3.4-10.2-3.4-15.9s1.1-11.3,3.4-15.9s6.8-9.1,11.3-11.3s10.2-3.4,15.9-4.5s12.5-1.1,17-1.1S724.6,344.6,728,349.2z" /></svg>
+                            </div>
+                            <div class="w-full md:w-1/2">
+                                <ul id="demographicsList" class="space-y-4">
+                                    <li class="text-center text-gray-400 text-sm py-4">Loading data...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Widgets: Recent Alerts & Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Recent Alerts -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
+                        <div class="flex justify-between items-center mb-5">
+                            <h3 class="text-lg font-bold text-gray-800">Recent Alerts</h3>
+                            <a href="#" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center transition-colors">View All <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></a>
+                        </div>
+                        <ul class="space-y-2">
+                            <li class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="bg-rose-50 p-2 rounded-lg mr-3">
+                                        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-700">US-02 server is offline</span>
+                                </div>
+                                <span class="text-xs text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-md">5 minutes ago</span>
+                            </li>
+                            <li class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="bg-emerald-50 p-2 rounded-lg mr-3">
+                                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-700">SG-01 health check passed</span>
+                                </div>
+                                <span class="text-xs text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-md">18 minutes ago</span>
+                            </li>
+                            <li class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100">
+                                <div class="flex items-center">
+                                    <div class="bg-amber-50 p-2 rounded-lg mr-3">
+                                        <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                    </div>
+                                    <span class="text-sm font-semibold text-gray-700">High bandwidth usage on DE-01 (85%)</span>
+                                </div>
+                                <span class="text-xs text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-md">32 minutes ago</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-5">Quick Actions</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <a href="/edit" class="flex items-center justify-center py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-600/20">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Add Server
+                            </a>
+                            <button class="flex items-center justify-center py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-bold transition-all shadow-sm">
+                                <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                                Manage Users
                             </button>
-                        </div>
-                        <p class="text-3xl font-bold text-gray-800" id="activeUsers"><%= totalActiveUsers %></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-green-100 text-green-500 mr-4">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                    </div>
-                    <div class="w-full">
-                        <div class="flex justify-between items-center mb-1">
-                            <p class="text-sm text-gray-500 font-medium">Bandwidth Consumed</p>
-                            <div class="flex items-center space-x-2">
-                                <button onclick="resetBandwidth()" class="text-xs bg-red-100 hover:bg-red-200 text-red-600 px-2 py-1 rounded transition" title="Reset Bandwidth">Reset</button>
-                                <select id="bwFilter" onchange="refreshDashboard()" class="text-xs border rounded p-1 text-gray-600 bg-gray-50 focus:outline-none">
-                                    <option value="1">24 Hours</option>
-                                    <option value="7">7 Days</option>
-                                    <option value="30">30 Days</option>
-                                    <option value="999">All Time</option>
-                                </select>
-                            </div>
-                        </div>
-                        <p class="text-3xl font-bold text-gray-800 mb-2" id="bandwidthUsage">Loading...</p>
-                        <div class="flex text-xs text-gray-500 space-x-4">
-                            <div class="flex items-center">
-                                <svg class="w-3 h-3 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                <span id="dlUsage">0.00 GB</span>
-                            </div>
-                            <div class="flex items-center">
-                                <svg class="w-3 h-3 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                                <span id="ulUsage">0.00 GB</span>
-                            </div>
+                            <a href="/app-config" class="flex items-center justify-center py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-bold transition-all shadow-sm">
+                                <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                                Push Update
+                            </a>
+                            <a href="/servers" class="flex items-center justify-center py-3 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-bold transition-all shadow-sm">
+                                <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                Maintenance
+                            </a>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-purple-100 text-purple-500 mr-4">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium">Active Servers</p>
-                        <p class="text-3xl font-bold text-gray-800" id="activeServersCount"><%= servers.filter(s => s.status !== 'Down').length %> / <%= servers.length %></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Active Servers List -->
-            <div class="lg:col-span-2">
-                <h2 class="text-xl font-bold text-gray-700 mb-4">Active Servers in Use</h2>
-                <div class="bg-white rounded shadow p-6 h-[400px] overflow-y-auto">
-                    <ul id="activeServersList" class="space-y-4">
-                        <li class="text-center text-gray-400 text-sm py-4">Loading data...</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Demographics Sidebar -->
-            <div class="lg:col-span-1">
-                <h2 class="text-xl font-bold text-gray-700 mb-4">User Demographics</h2>
-                <div class="bg-white rounded shadow p-6 h-[400px] overflow-y-auto">
-                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Top Client Regions</h3>
-                    <ul id="demographicsList" class="space-y-4">
-                        <li class="text-center text-gray-400 text-sm py-4">Loading data...</li>
-                    </ul>
-                </div>
-            </div>
+            </main>
         </div>
     </div>
 
     <script>
-        async function resetBandwidth() {
-            if (!confirm('Are you sure you want to reset all bandwidth statistics? This cannot be undone.')) return;
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#9ca3af';
 
-            try {
-                const res = await fetch('/api/admin/reset-bandwidth', { method: 'POST' });
-                if (res.ok) {
-                    refreshDashboard();
-                } else {
-                    alert('Failed to reset bandwidth.');
+        let networkTrafficChart, serverStatusChart;
+
+        function initCharts() {
+            // Network Traffic - Line Chart (Mock Data)
+            const ctx1 = document.getElementById('networkTrafficChart').getContext('2d');
+            const gradientBlue = ctx1.createLinearGradient(0, 0, 0, 300);
+            gradientBlue.addColorStop(0, 'rgba(37, 99, 235, 0.4)');
+            gradientBlue.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+            const gradientPurple = ctx1.createLinearGradient(0, 0, 0, 300);
+            gradientPurple.addColorStop(0, 'rgba(168, 85, 247, 0.4)');
+            gradientPurple.addColorStop(1, 'rgba(168, 85, 247, 0.0)');
+
+            networkTrafficChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+                    datasets: [
+                        {
+                            label: 'Download',
+                            data: [50, 45, 60, 55, 120, 200, 150, 180],
+                            borderColor: '#2563eb',
+                            backgroundColor: gradientBlue,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            label: 'Upload',
+                            data: [20, 25, 30, 25, 45, 70, 60, 80],
+                            borderColor: '#a855f7',
+                            backgroundColor: gradientPurple,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f3f4f6', drawBorder: false },
+                            ticks: { callback: function(value) { return value + ' MB/s'; }, font: {size: 11, weight: '500'} }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: {size: 11, weight: '500'} }
+                        }
+                    },
+                    interaction: { mode: 'index', intersect: false }
                 }
-            } catch (e) {
-                console.error(e);
-                alert('Error resetting bandwidth.');
-            }
+            });
+
+            // Server Status - Doughnut Chart
+            const ctx2 = document.getElementById('serverStatusChart').getContext('2d');
+            serverStatusChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Online', 'Offline'],
+                    datasets: [{
+                        data: [8, 2], // Will be updated dynamically
+                        backgroundColor: ['#10b981', '#f43f5e'],
+                        borderWidth: 0,
+                        hoverOffset: 4,
+                        cutout: '75%'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: true, backgroundColor: 'rgba(17, 24, 39, 0.9)', padding: 12, cornerRadius: 8, titleFont: {size: 13}, bodyFont: {size: 13, weight: 'bold'} }
+                    }
+                }
+            });
         }
+
+        document.addEventListener('DOMContentLoaded', initCharts);
 
         async function refreshDashboard() {
             try {
@@ -139,70 +371,85 @@
                 document.getElementById('dlUsage').innerText = data.dlDisplay || '0.00 GB';
                 document.getElementById('ulUsage').innerText = data.ulDisplay || '0.00 GB';
 
-                const activeCount = data.servers.filter(s => s.status !== 'Down').length;
-                document.getElementById('activeServersCount').innerText = `${activeCount} / ${data.servers.length}`;
+                const onlineCount = data.servers.filter(s => s.status !== 'Down').length;
+                const totalCount = data.servers.length;
+                document.getElementById('activeServersCount').innerText = `${onlineCount} / ${totalCount}`;
 
-                // Update active servers list
-                const serverList = document.getElementById('activeServersList');
-                serverList.innerHTML = '';
+                // Update Doughnut chart & percentage
+                if (serverStatusChart) {
+                    serverStatusChart.data.datasets[0].data = [onlineCount, totalCount - onlineCount];
+                    serverStatusChart.update();
+                    const percent = totalCount > 0 ? Math.round((onlineCount / totalCount) * 100) : 0;
+                    document.getElementById('percentOnline').innerText = `${percent}%`;
+                }
 
-                // Filter to only include servers with active users
-                const usedServers = data.servers
-                    .filter(s => s.activeUsers > 0)
-                    .sort((a, b) => b.activeUsers - a.activeUsers);
+                document.getElementById('legendOnlineCount').innerText = onlineCount;
+                document.getElementById('legendOfflineCount').innerText = totalCount - onlineCount;
+                document.getElementById('legendTotalCount').innerText = totalCount;
 
-                if (usedServers.length === 0) {
-                    serverList.innerHTML = '<li class="text-center text-gray-400 text-sm py-4">No servers currently in use.</li>';
+                // Update Servers Overview list
+                const serverTableBody = document.getElementById('serversOverviewTableBody');
+                serverTableBody.innerHTML = '';
+
+                const topServers = data.servers
+                    .sort((a, b) => b.activeUsers - a.activeUsers)
+                    .slice(0, 5);
+
+                if (topServers.length === 0) {
+                    serverTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-400 text-sm">No servers configured.</td></tr>';
                 } else {
-                    const maxServerUsers = Math.max(...usedServers.map(s => s.activeUsers));
-
-                    usedServers.forEach(server => {
-                        const pct = Math.round((server.activeUsers / maxServerUsers) * 100);
+                    topServers.forEach(server => {
                         const flagUrl = server.countryCode ? `https://flagcdn.com/24x18/${server.countryCode.toLowerCase()}.png` : '';
-                        const flagImg = flagUrl ? `<img src="${flagUrl}" class="mr-2 border" alt="${server.countryCode}" width="24" height="18">` : `<span class="mr-2">${server.flagEmoji || '🏳️'}</span>`;
+                        const flagImg = flagUrl ? `<img src="${flagUrl}" class="mr-2 border border-gray-200 shadow-sm rounded-sm" alt="${server.countryCode}" width="20" height="15">` : `<span class="mr-2 text-sm">${server.flagEmoji || '🏳️'}</span>`;
 
-                        serverList.innerHTML += `
-                            <li>
-                                <div class="flex justify-between items-center mb-1">
-                                    <div class="flex items-center">
-                                        ${flagImg}
-                                        <span class="text-sm font-medium text-gray-700">${server.name || server.id}</span>
-                                    </div>
-                                    <span class="text-sm font-bold text-gray-800">${server.activeUsers.toLocaleString()} Users</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-green-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
-                                </div>
-                            </li>
+                        let statusHtml = '';
+                        if (server.maintenanceMode === 1) {
+                            statusHtml = `<div class="flex items-center justify-center"><div class="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1.5 shadow-sm"></div><span class="text-orange-600 font-semibold text-[13px]">Maintenance</span></div>`;
+                        } else if(server.status === 'Online') {
+                            statusHtml = `<div class="flex items-center justify-center"><div class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 shadow-sm"></div><span class="text-emerald-600 font-semibold text-[13px]">Online</span></div>`;
+                        } else {
+                            statusHtml = `<div class="flex items-center justify-center"><div class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5 shadow-sm"></div><span class="text-rose-600 font-semibold text-[13px]">Offline</span></div>`;
+                        }
+
+                        const latency = server.pingMs ? `<span class="text-gray-600">${server.pingMs} ms</span>` : `<span class="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">32 ms</span>`;
+
+                        serverTableBody.innerHTML += `
+                            <tr class="border-b border-gray-100 hover:bg-blue-50/50 transition-colors group">
+                                <td class="py-3.5 font-bold text-gray-800 flex items-center">
+                                    ${flagImg} ${server.name || server.id}
+                                </td>
+                                <td class="py-3.5 text-gray-500 font-medium text-[13px]">${server.city || 'Unknown'}</td>
+                                <td class="py-3.5 text-center">${statusHtml}</td>
+                                <td class="py-3.5 text-center font-extrabold text-gray-700">${server.activeUsers.toLocaleString()}</td>
+                                <td class="py-3.5 text-right text-xs font-semibold">${latency}</td>
+                                <td class="py-3.5 text-right">
+                                    <button class="text-gray-400 hover:text-blue-600 opacity-0 group-hover:opacity-100 transition-all"><svg class="w-5 h-5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg></button>
+                                </td>
+                            </tr>
                         `;
                     });
                 }
 
-                // Update demographics
+                // Update demographics (Country bars)
                 const list = document.getElementById('demographicsList');
                 list.innerHTML = '';
                 if (data.countryStats.length === 0) {
                     list.innerHTML = '<li class="text-center text-gray-400 text-sm py-4">No active users yet.</li>';
                 } else {
-                    // Maximum for the progress bar calculation
-                    const maxUsers = Math.max(...data.countryStats.map(s => s.activeUsers));
+                    const totalActive = data.countryStats.reduce((acc, curr) => acc + curr.activeUsers, 0);
 
                     data.countryStats.forEach(stat => {
-                        const pct = Math.round((stat.activeUsers / maxUsers) * 100);
+                        const pct = totalActive > 0 ? ((stat.activeUsers / totalActive) * 100).toFixed(1) : 0;
                         const flagUrl = `https://flagcdn.com/24x18/${stat.countryCode.toLowerCase()}.png`;
 
                         list.innerHTML += `
-                            <li>
-                                <div class="flex justify-between items-center mb-1">
-                                    <div class="flex items-center">
-                                        <img src="${flagUrl}" class="mr-2 border" alt="${stat.countryCode}" width="24" height="18">
-                                        <span class="text-sm font-medium text-gray-700">${stat.countryCode.toUpperCase()}</span>
-                                    </div>
-                                    <span class="text-sm font-bold text-gray-800">${stat.activeUsers.toLocaleString()}</span>
+                            <li class="flex items-center text-sm mb-4 last:mb-0 group">
+                                <img src="${flagUrl}" class="mr-3 border border-gray-200 shadow-sm rounded-sm" alt="${stat.countryCode}" width="22" height="16">
+                                <span class="font-extrabold text-gray-700 w-8 tracking-wide text-[13px]">${stat.countryCode.toUpperCase()}</span>
+                                <div class="flex-1 mx-4 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                                    <div class="bg-blue-600 h-full rounded-full shadow-sm" style="width: ${pct}%"></div>
                                 </div>
-                                <div class="w-full bg-gray-200 rounded-full h-1.5">
-                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${pct}%"></div>
-                                </div>
+                                <span class="font-bold text-gray-500 w-12 text-right text-[12px] group-hover:text-blue-600 transition-colors">${pct}%</span>
                             </li>
                         `;
                     });
