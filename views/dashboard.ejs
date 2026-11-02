@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard | VPN Admin</title>
+    <link rel="icon" type="image/png" href="/images/t2vpn_icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-[#424A5C] text-white p-4 flex justify-between items-center shadow">
+        <div class="flex items-center space-x-3">
+            <img src="/images/t2VPN.png" alt="t2VPN Logo" class="h-8 bg-white p-1 rounded">
+            <span class="font-bold text-xl">Admin Dashboard</span>
+        </div>
+        <div>
+            <a href="/dashboard" class="mr-4 font-bold border-b-2">Dashboard</a>
+            <a href="/servers" class="mr-4 hover:text-gray-300">Servers</a>
+            <a href="/ads" class="mr-4 hover:text-gray-300">Ads</a>
+            <a href="/logout" class="bg-[#2D3340] hover:bg-[#1A1F29] px-3 py-1 rounded transition">Logout</a>
+        </div>
+    </nav>
+
+    <div class="p-8 max-w-7xl mx-auto">
+
+        <!-- Real-Time Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-500 mr-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center">
+                            <p class="text-sm text-gray-500 font-medium">Real-Time Users</p>
+                            <button onclick="refreshDashboard()" class="ml-2 text-gray-400 hover:text-blue-500 focus:outline-none" title="Refresh Now">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            </button>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800" id="activeUsers"><%= totalActiveUsers %></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-500 mr-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    </div>
+                    <div class="w-full">
+                        <div class="flex justify-between items-center mb-1">
+                            <p class="text-sm text-gray-500 font-medium">Bandwidth Consumed</p>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="resetBandwidth()" class="text-xs bg-red-100 hover:bg-red-200 text-red-600 px-2 py-1 rounded transition" title="Reset Bandwidth">Reset</button>
+                                <select id="bwFilter" onchange="refreshDashboard()" class="text-xs border rounded p-1 text-gray-600 bg-gray-50 focus:outline-none">
+                                    <option value="1">24 Hours</option>
+                                    <option value="7">7 Days</option>
+                                    <option value="30">30 Days</option>
+                                    <option value="999">All Time</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="text-3xl font-bold text-gray-800 mb-2" id="bandwidthUsage">Loading...</p>
+                        <div class="flex text-xs text-gray-500 space-x-4">
+                            <div class="flex items-center">
+                                <svg class="w-3 h-3 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <span id="dlUsage">0.00 GB</span>
+                            </div>
+                            <div class="flex items-center">
+                                <svg class="w-3 h-3 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                <span id="ulUsage">0.00 GB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-100 text-purple-500 mr-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium">Active Servers</p>
+                        <p class="text-3xl font-bold text-gray-800" id="activeServersCount"><%= servers.filter(s => s.status !== 'Down').length %> / <%= servers.length %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Active Servers List -->
+            <div class="lg:col-span-2">
+                <h2 class="text-xl font-bold text-gray-700 mb-4">Active Servers in Use</h2>
+                <div class="bg-white rounded shadow p-6 h-[400px] overflow-y-auto">
+                    <ul id="activeServersList" class="space-y-4">
+                        <li class="text-center text-gray-400 text-sm py-4">Loading data...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Demographics Sidebar -->
+            <div class="lg:col-span-1">
+                <h2 class="text-xl font-bold text-gray-700 mb-4">User Demographics</h2>
+                <div class="bg-white rounded shadow p-6 h-[400px] overflow-y-auto">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Top Client Regions</h3>
+                    <ul id="demographicsList" class="space-y-4">
+                        <li class="text-center text-gray-400 text-sm py-4">Loading data...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function resetBandwidth() {
+            if (!confirm('Are you sure you want to reset all bandwidth statistics? This cannot be undone.')) return;
+
+            try {
+                const res = await fetch('/api/admin/reset-bandwidth', { method: 'POST' });
+                if (res.ok) {
+                    refreshDashboard();
+                } else {
+                    alert('Failed to reset bandwidth.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error resetting bandwidth.');
+            }
+        }
+
+        async function refreshDashboard() {
+            try {
+                const days = document.getElementById('bwFilter').value;
+                const res = await fetch('/api/admin/dashboard-stats?days=' + days);
+                const data = await res.json();
+
+                // Update top cards
+                document.getElementById('activeUsers').innerText = data.totalActiveUsers.toLocaleString();
+                document.getElementById('bandwidthUsage').innerText = data.bwDisplay;
+                document.getElementById('dlUsage').innerText = data.dlDisplay || '0.00 GB';
+                document.getElementById('ulUsage').innerText = data.ulDisplay || '0.00 GB';
+
+                const activeCount = data.servers.filter(s => s.status !== 'Down').length;
+                document.getElementById('activeServersCount').innerText = `${activeCount} / ${data.servers.length}`;
+
+                // Update active servers list
+                const serverList = document.getElementById('activeServersList');
+                serverList.innerHTML = '';
+
+                // Filter to only include servers with active users
+                const usedServers = data.servers
+                    .filter(s => s.activeUsers > 0)
+                    .sort((a, b) => b.activeUsers - a.activeUsers);
+
+                if (usedServers.length === 0) {
+                    serverList.innerHTML = '<li class="text-center text-gray-400 text-sm py-4">No servers currently in use.</li>';
+                } else {
+                    const maxServerUsers = Math.max(...usedServers.map(s => s.activeUsers));
+
+                    usedServers.forEach(server => {
+                        const pct = Math.round((server.activeUsers / maxServerUsers) * 100);
+                        const flagUrl = server.countryCode ? `https://flagcdn.com/24x18/${server.countryCode.toLowerCase()}.png` : '';
+                        const flagImg = flagUrl ? `<img src="${flagUrl}" class="mr-2 border" alt="${server.countryCode}" width="24" height="18">` : `<span class="mr-2">${server.flagEmoji || '🏳️'}</span>`;
+
+                        serverList.innerHTML += `
+                            <li>
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="flex items-center">
+                                        ${flagImg}
+                                        <span class="text-sm font-medium text-gray-700">${server.name || server.id}</span>
+                                    </div>
+                                    <span class="text-sm font-bold text-gray-800">${server.activeUsers.toLocaleString()} Users</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="bg-green-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
+                                </div>
+                            </li>
+                        `;
+                    });
+                }
+
+                // Update demographics
+                const list = document.getElementById('demographicsList');
+                list.innerHTML = '';
+                if (data.countryStats.length === 0) {
+                    list.innerHTML = '<li class="text-center text-gray-400 text-sm py-4">No active users yet.</li>';
+                } else {
+                    // Maximum for the progress bar calculation
+                    const maxUsers = Math.max(...data.countryStats.map(s => s.activeUsers));
+
+                    data.countryStats.forEach(stat => {
+                        const pct = Math.round((stat.activeUsers / maxUsers) * 100);
+                        const flagUrl = `https://flagcdn.com/24x18/${stat.countryCode.toLowerCase()}.png`;
+
+                        list.innerHTML += `
+                            <li>
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="flex items-center">
+                                        <img src="${flagUrl}" class="mr-2 border" alt="${stat.countryCode}" width="24" height="18">
+                                        <span class="text-sm font-medium text-gray-700">${stat.countryCode.toUpperCase()}</span>
+                                    </div>
+                                    <span class="text-sm font-bold text-gray-800">${stat.activeUsers.toLocaleString()}</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${pct}%"></div>
+                                </div>
+                            </li>
+                        `;
+                    });
+                }
+            } catch(e) {
+                console.error("Failed to refresh dashboard", e);
+            }
+        }
+
+        // Initial fetch and auto-refresh every 10 seconds
+        refreshDashboard();
+        setInterval(refreshDashboard, 10000);
+    </script>
+</body>
+</html>
