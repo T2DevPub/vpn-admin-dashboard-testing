@@ -62,10 +62,14 @@
                 </div>
             </div>
 
-            <div class="mb-4">
+            <div class="mb-4 flex space-x-8">
                 <label class="flex items-center">
                     <input type="checkbox" name="isPlusOnly" class="form-checkbox h-5 w-5 text-blue-600" <%= (server && server.isPlusOnly) ? 'checked' : '' %>>
                     <span class="ml-2 text-gray-700 font-bold">Premium Server (Plus Only)</span>
+                </label>
+                <label class="flex items-center bg-orange-50 px-3 py-1 rounded border border-orange-200">
+                    <input type="checkbox" name="maintenanceMode" class="form-checkbox h-5 w-5 text-orange-600" <%= (server && server.maintenanceMode) ? 'checked' : '' %>>
+                    <span class="ml-2 text-orange-700 font-bold">Maintenance Mode</span>
                 </label>
             </div>
 

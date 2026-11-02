@@ -87,8 +87,11 @@
                             <% } %>
                         </td>
                         <td class="p-4 flex items-center">
-                            <div id="status-indicator-<%= server.id %>" class="flex items-center w-20">
-                                <% if(server.status === 'Online') { %>
+                            <div id="status-indicator-<%= server.id %>" class="flex items-center w-28">
+                                <% if(server.maintenanceMode === 1) { %>
+                                    <div class="h-2.5 w-2.5 rounded-full bg-orange-500 mr-2"></div>
+                                    <span class="text-sm font-medium text-orange-600">Maintenance</span>
+                                <% } else if(server.status === 'Online') { %>
                                     <div class="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
                                     <span class="text-sm font-medium text-green-600">Online</span>
                                 <% } else if(server.status === 'Down') { %>
