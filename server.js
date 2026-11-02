@@ -136,14 +136,25 @@ async function upgradeSchema() {
       const configInfo = await db.all(`PRAGMA table_info(app_config)`);
       const columnsToAdd = [
           'bannerAdUnitId', 'appOpenAdUnitId', 'interstitialAdUnitId', 'rewardedAdUnitId',
-          'metaBannerAdUnitId', 'metaAppOpenAdUnitId', 'metaInterstitialAdUnitId', 'metaRewardedAdUnitId'
+          'metaBannerAdUnitId', 'metaAppOpenAdUnitId', 'metaInterstitialAdUnitId', 'metaRewardedAdUnitId',
+          'forceUpdateVersion', 'forceUpdateUrl', 'motdMessage', 'motdEnabled'
       ];
 
       for (const col of columnsToAdd) {
           if (!configInfo.some(c => c.name === col)) {
-              await db.exec(`ALTER TABLE app_config ADD COLUMN ${col} TEXT`);
+              let type = (col === 'motdEnabled') ? 'INTEGER DEFAULT 0' : 'TEXT';
+              await db.exec(`ALTER TABLE app_config ADD COLUMN ${col} ${type}`);
           }
       }
+
+      const serversInfo = await db.all(`PRAGMA table_info(servers)`);
+      if (!serversInfo.some(c => c.name === 'lastDowntimeAlertSent')) {
+          await db.exec(`ALTER TABLE servers ADD COLUMN lastDowntimeAlertSent INTEGER`);
+      }
+      if (!serversInfo.some(c => c.name === 'maintenanceMode')) {
+          await db.exec(`ALTER TABLE servers ADD COLUMN maintenanceMode INTEGER DEFAULT 0`);
+      }
+
   } catch (e) {
       console.error("Schema upgrade error:", e);
   }
@@ -209,6 +220,14 @@ async function setupDatabase() {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS daily_bandwidth (
       date TEXT PRIMARY KEY,
+      consumedGb REAL DEFAULT 0
+    );
+  `);
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS historical_stats (
+      timestamp INTEGER PRIMARY KEY,
+      activeUsers INTEGER DEFAULT 0,
       consumedGb REAL DEFAULT 0
     );
   `);
